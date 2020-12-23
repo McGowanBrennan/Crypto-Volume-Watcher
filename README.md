@@ -5,4 +5,4 @@ Scans crytptocurrencies for unusual volume
 
 Due to API call limits the scanner must be run locally. Download the repository, run npm install and then npm start
 
-![GitHub Logo](/images/logo.png)
+![GitHub Logo](/images/example.png)
