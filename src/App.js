@@ -57,7 +57,10 @@ async function getDayVol(ticker){
 async function getInfo(coin){
   const response = await fetch("https://data.messari.io/api/v2/assets/" + coin.toLowerCase() + "/profile")
   const info = await response.json()
-  console.log(info.data.profile.general.overview.official_links)
+  if (info.data.profile.general.overview.official_links.length === 0){
+    let dummy_values = [{name: "No links found ):", link: "https://coinmarketcap.com/"}, {name: "No links found ):", link: "https://coinmarketcap.com/"}]
+    info.data.profile.general.overview.official_links = dummy_values
+  }
   return info
 
 }
@@ -71,25 +74,11 @@ function App() {
   const[anomalies, setAnomalies] = useState([])
   const[loading, setLoading] = useState(true)
   const[display, setDisplay] = useState([])
-  const[buttons, set] = useState([])
 
   useEffect(() => {
-    var lastWeek = getLastWeek();
-    var lastWeekMonth = lastWeek.getMonth() + 1;
-    var lastWeekDay = lastWeek.getDate();
-    var lastWeekYear = lastWeek.getFullYear();
-    var lastWeekDisplay = lastWeekYear + "-" + lastWeekMonth + "-" + lastWeekDay
-
-    var today = getToday()
-    var todayMonth = today.getMonth() + 1
-    var todayDay = today.getDate()
-    var todayYear = today.getFullYear()
-    var today = todayYear + "-" + todayMonth + "-" + todayDay
-
-
     const fetchAllTheThings = async () => {
       const tickers = await getTokens();
-      console.log(tickers)
+      
       const allSymbolPromises = tickers.map(ticker => {
         const result1Promise = getWeekVol(ticker.symbol);
         const result2Promise = getDayVol(ticker.symbol);
@@ -97,25 +86,23 @@ function App() {
       })
       
       const allSymbolValues = await Promise.all(allSymbolPromises);
-      console.log(allSymbolValues)
       let set_anomalies = []
       allSymbolValues.map(volumes => {
         if(volumes[0].status.error_code !== 404){
           let stats = getStandardDeviation(volumes[0].data.values)
-          //console.log(stats)
+    
           let dataStd = stats[0]
           let dataMean = stats[1]
           let anomaly_cutoff = dataStd * 3
           let upper_limit = dataMean + anomaly_cutoff
     
           if(volumes[1].status.error_code !== 404 && volumes[1].data.values !== null ){
-            console.log(volumes[1])
+            
             let dayVol = volumes[1].data.values[0][5]
-            //console.log(dayVol)
-            //console.log(upper_limit)
+            
             if (dayVol > upper_limit){
-              //console.log(volumes[1].data.name)
               set_anomalies.push([volumes[1].data.name, volumes[1].data.symbol, dayVol, dataMean, volumes[1].data.values[0][3]])
+              
             }
           }
         }
@@ -133,7 +120,7 @@ function App() {
       //console.log(anomalyValues)
       let set_display = []
       anomalyValues.map(coinInfo => {
-        console.log(coinInfo)
+       
         set_display.push(
           <div class="frame">
           <div class="center">
@@ -179,8 +166,6 @@ function App() {
     
   }, []);
 
-  console.log(tickers)
-  console.log(weekAvg)
 
 
 
